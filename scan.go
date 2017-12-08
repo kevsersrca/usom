@@ -1,4 +1,4 @@
-package scanner
+package usom
 
 import (
 	"encoding/xml"
@@ -131,23 +131,19 @@ Scan usom blocked url list inside your ip mask
 if it find , assign list struct slice
 masks are contains ip ranges
 ex: var masks = []string{"31.192.208.0/21", "89.43.28.0/22"}
+the speed sleep down as the speed values increases
 
-value is total url search count
-
-filtertime is value of time filtering as timestamp
-
-
-usage: usom(masks, time.Millisecond*100)
+usage: Scan(masks, 10)
 
 if view the results
 
-	list := usom(masks,time.Millisecond*100)
+	list := Scan(masks,10)
 	for _, v := range list {
 		fmt.Println(v.Hostname, v.IP)
 	}
 
 */
-func Usom(masks []string, speed time.Duration) []Pong {
+func Scan(masks []string, speed int) []Pong {
 	list := []Pong{}
 	bar := pb.StartNew(0)
 	usomUrlList, _ := httplib.Get("https://www.usom.gov.tr/url-list.xml").Bytes()
@@ -160,12 +156,11 @@ func Usom(masks []string, speed time.Duration) []Pong {
 			bar.Increment()
 			j, more := <-jobs
 			if more {
-				ipaddr, _ := Lookup(Cleanurl(j), speed)
+				ipaddr, _ := Lookup(Cleanurl(j), time.Millisecond*time.Duration(speed))
 				if ipaddr != nil {
 					for _, v := range ipaddr {
 						if Isinside(v, masks) != nil {
-							temp := Pong{IP: v, Hostname: Cleanurl(j)}
-							list = append(list, temp)
+							list = append(list, Pong{IP: v, Hostname: Cleanurl(j)})
 						}
 					}
 				}
@@ -183,11 +178,11 @@ func Usom(masks []string, speed time.Duration) []Pong {
 	return list
 }
 
-func UsomDaily(masks []string, speed time.Duration) []Pong {
+func Scandaily(masks []string, speed int) ([]Pong, []Pong) {
 	list := []Pong{}
+	scanned := []Pong{}
 	var s, _ = time.Parse("2006-01-02 15:04:05", time.Now().Local().Format("2006-01-02 15:04:05"))
 	var lastDay = s.Unix() - 86400
-	bar := pb.StartNew(0)
 	usomUrlList, _ := httplib.Get("https://www.usom.gov.tr/url-list.xml").Bytes()
 	xml.Unmarshal(usomUrlList, &t)
 
@@ -195,15 +190,14 @@ func UsomDaily(masks []string, speed time.Duration) []Pong {
 	done := make(chan bool)
 	go func() {
 		for {
-			bar.Increment()
 			j, more := <-jobs
 			if more {
-				ipaddr, _ := Lookup(Cleanurl(j), speed)
+				ipaddr, _ := Lookup(Cleanurl(j), time.Millisecond*time.Duration(speed))
 				if ipaddr != nil {
 					for _, v := range ipaddr {
+						scanned = append(scanned, Pong{IP: v, Hostname: Cleanurl(j)})
 						if Isinside(v, masks) != nil {
-							temp := Pong{IP: v, Hostname: Cleanurl(j)}
-							list = append(list, temp)
+							list = append(list, Pong{IP: v, Hostname: Cleanurl(j)})
 						}
 					}
 				}
@@ -221,5 +215,5 @@ func UsomDaily(masks []string, speed time.Duration) []Pong {
 	}
 	close(jobs)
 	<-done
-	return list
+	return list, scanned
 }
