@@ -21,7 +21,9 @@ import (
 )
 
 func main() {
-	list := s.Usom([]string{"89.43.28.0/22"}, time.Millisecond*100)
+	masks := []string{"89.43.28.0/22"}
+	speed := 100
+	list := s.Usom(masks, speed)
 	for _, v := range list {
 		fmt.Println(v.Hostname, v.IP)
 	}
