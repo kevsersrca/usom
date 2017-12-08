@@ -13,21 +13,6 @@ import (
 
 /*
 XML Parsing Structs for https://www.usom.gov.tr/url-list.xml
-Xml datas :
-<usom-data>
-	<xml-info>
-		<updated></updated>
-		<author></author>
-	</xml-info>
-	<url-list>
-		<url-info>
-			<id></id>
-			<url></url>
-			<des></des>
-			<source></source>
-			<date></date>
-		</url-info>
-	</url-list>
 */
 type UsomData struct {
 	XMLName xml.Name `xml:"usom-data"`
