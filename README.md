@@ -1,7 +1,5 @@
 # Usom Url Scanner
-Scan usom blocked url list inside your ip masks
-use Usom method for all 
-use UsomDaily method today 
+Scan usom blocked url list inside your ip masks.
 
 ## Usage
 
